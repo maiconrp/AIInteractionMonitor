@@ -2,6 +2,7 @@ import { Switch, Route } from "wouter";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import Dashboard from "@/pages/dashboard";
 import Conversations from "@/pages/conversations";
+import Settings from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 
 function App() {
@@ -11,6 +12,7 @@ function App() {
         <Switch>
           <Route path="/" component={Dashboard} />
           <Route path="/conversations" component={Conversations} />
+          <Route path="/settings" component={Settings} />
           <Route component={NotFound} />
         </Switch>
       </DashboardLayout>

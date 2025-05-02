@@ -17,15 +17,21 @@ export function useTheme() {
     }
   }, []);
 
-  const toggleTheme = () => {
-    const newTheme = theme === "dark" ? "light" : "dark";
+  // Update theme and apply changes
+  const updateTheme = (newTheme: Theme) => {
     setTheme(newTheme);
     localStorage.setItem("theme", newTheme);
     document.documentElement.classList.toggle("dark", newTheme === "dark");
   };
 
+  const toggleTheme = () => {
+    const newTheme = theme === "dark" ? "light" : "dark";
+    updateTheme(newTheme);
+  };
+
   return {
     theme,
+    setTheme: updateTheme,
     toggleTheme,
     isDark: theme === "dark",
   };
