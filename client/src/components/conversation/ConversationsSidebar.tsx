@@ -1,18 +1,16 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Conversation } from "@shared/schema";
-import { Search, Filter, Clock, Info } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Search, Clock, Info } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Select, 
-  SelectTrigger, 
-  SelectValue, 
-  SelectContent, 
-  SelectItem 
-} from "@/components/ui/select";
+
+interface ConversationListResponse {
+  conversations: Conversation[];
+  total: number;
+  totalPages: number;
+}
 
 interface ConversationsSidebarProps {
   onSelectConversation: (conversation: Conversation) => void;
@@ -24,7 +22,7 @@ export default function ConversationsSidebar({ onSelectConversation, selectedCon
   const [statusFilter, setStatusFilter] = useState("all");
   const [view, setView] = useState("all");
   
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useQuery<ConversationListResponse>({
     queryKey: ['/api/conversations', { page: 1, status: statusFilter, search: searchQuery }],
   });
   
@@ -47,8 +45,8 @@ export default function ConversationsSidebar({ onSelectConversation, selectedCon
     }
   };
 
-  const getTimeLabel = (timeAgo: string) => {
-    return timeAgo;
+  const getTimeLabel = (timeAgo: string | undefined) => {
+    return timeAgo || 'Unknown';
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -99,7 +97,7 @@ export default function ConversationsSidebar({ onSelectConversation, selectedCon
           </div>
         ) : conversations.length > 0 ? (
           <div className="divide-y divide-slate-800">
-            {conversations.map((conversation) => (
+            {conversations.map((conversation: Conversation) => (
               <div 
                 key={conversation.id}
                 className={`p-4 hover:bg-slate-800 cursor-pointer transition-colors ${
@@ -109,8 +107,8 @@ export default function ConversationsSidebar({ onSelectConversation, selectedCon
               >
                 <div className="flex justify-between items-start mb-1">
                   <div className="flex items-center">
-                    <div className={`h-8 w-8 rounded-full bg-${conversation.avatarColor}-100 flex items-center justify-center text-${conversation.avatarColor}-700 mr-3`}>
-                      {conversation.avatarText}
+                    <div className="h-8 w-8 rounded-full bg-slate-600 flex items-center justify-center text-white mr-3">
+                      {conversation.avatarText || '?'}
                     </div>
                     <div>
                       <div className="font-medium line-clamp-1">
@@ -135,7 +133,7 @@ export default function ConversationsSidebar({ onSelectConversation, selectedCon
                 </div>
                 
                 <div className="mt-2 flex items-center gap-1">
-                  {conversation.tags && conversation.tags.map((tag: string, index: number) => (
+                  {conversation.tags && Array.isArray(conversation.tags) && conversation.tags.map((tag: string, index: number) => (
                     <Badge key={index} variant="secondary" className="bg-slate-700 text-xs">
                       {tag}
                     </Badge>

@@ -3,16 +3,14 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useWebSocket } from "@/hooks/use-websocket";
-import { ConversationMessage } from "@shared/schema";
+import { Conversation, ConversationMessage } from "@shared/schema";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { 
   PauseCircle, 
   UserCheck, 
   MessageSquare, 
-  FileText, 
   Send, 
   Paperclip, 
   CircleHelp,
@@ -24,6 +22,10 @@ interface ConversationChatProps {
   conversationId: string | null;
 }
 
+interface MessageListResponse {
+  messages: ConversationMessage[];
+}
+
 export default function ConversationChat({ conversationId }: ConversationChatProps) {
   const [messageInput, setMessageInput] = useState("");
   const [activeTab, setActiveTab] = useState("messages");
@@ -33,16 +35,18 @@ export default function ConversationChat({ conversationId }: ConversationChatPro
   const { sendMessage } = useWebSocket();
   
   // Fetch conversation details
-  const { data: conversation, isLoading: isLoadingConversation } = useQuery({
+  const { data: conversation, isLoading: isLoadingConversation } = useQuery<Conversation>({
     queryKey: [`/api/conversations/${conversationId}`],
     enabled: !!conversationId,
   });
   
   // Fetch conversation messages
-  const { data: messages = [], isLoading: isLoadingMessages } = useQuery({
+  const { data: messagesData, isLoading: isLoadingMessages } = useQuery<MessageListResponse>({
     queryKey: [`/api/conversations/${conversationId}/messages`],
     enabled: !!conversationId,
   });
+  
+  const messages = messagesData?.messages || [];
 
   // Handle message submission
   const sendMessageMutation = useMutation({
@@ -56,7 +60,7 @@ export default function ConversationChat({ conversationId }: ConversationChatPro
       setMessageInput("");
       queryClient.invalidateQueries({ queryKey: [`/api/conversations/${conversationId}/messages`] });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Failed to send message",
         description: error.message,
@@ -83,7 +87,7 @@ export default function ConversationChat({ conversationId }: ConversationChatPro
         action: "pause"
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Failed to pause AI",
         description: error.message,
@@ -110,7 +114,7 @@ export default function ConversationChat({ conversationId }: ConversationChatPro
         action: "takeover"
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Failed to take over conversation",
         description: error.message,
@@ -166,8 +170,8 @@ export default function ConversationChat({ conversationId }: ConversationChatPro
       {/* Header */}
       <div className="p-4 border-b border-slate-700 flex items-center justify-between">
         <div className="flex items-center">
-          <div className={`h-8 w-8 rounded-full bg-${conversation.avatarColor}-100 flex items-center justify-center text-${conversation.avatarColor}-700 mr-3`}>
-            {conversation.avatarText}
+          <div className="h-8 w-8 rounded-full bg-slate-600 flex items-center justify-center text-white mr-3">
+            {conversation.avatarText || '?'}
           </div>
           <div>
             <h3 className="font-medium line-clamp-1">{conversation.userName || 'Anonymous User'}</h3>
@@ -310,7 +314,6 @@ export default function ConversationChat({ conversationId }: ConversationChatPro
             Shift + Enter for new line
           </div>
           <div className="flex items-center">
-            <FileText className="h-3 w-3 mr-1" />
             Canned Response
           </div>
         </div>

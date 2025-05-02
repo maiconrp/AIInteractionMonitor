@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Conversation } from "@shared/schema";
-import { Copy, ExternalLink, Mail, Phone, MapPin, AlertCircle, Check } from "lucide-react";
+import { Copy, ExternalLink, Mail, AlertCircle, Check } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +16,7 @@ export default function ContactProfile({ conversationId }: ContactProfileProps) 
   const [activeTab, setActiveTab] = useState("details");
   const { toast } = useToast();
   
-  const { data: conversation, isLoading } = useQuery({
+  const { data: conversation, isLoading } = useQuery<Conversation>({
     queryKey: [`/api/conversations/${conversationId}`],
     enabled: !!conversationId,
   });
@@ -54,8 +54,8 @@ export default function ContactProfile({ conversationId }: ContactProfileProps) 
         <h3 className="text-sm font-medium uppercase tracking-wider text-slate-400 mb-4">Contact</h3>
         
         <div className="flex flex-col items-center mb-4">
-          <div className={`h-16 w-16 rounded-full bg-${conversation.avatarColor}-100 flex items-center justify-center text-${conversation.avatarColor}-700 text-2xl mb-2`}>
-            {conversation.avatarText}
+          <div className="h-16 w-16 rounded-full bg-slate-600 flex items-center justify-center text-white text-2xl mb-2">
+            {conversation.avatarText || '?'}
           </div>
           <div className="text-center">
             <h2 className="font-medium">{conversation.userName || 'Anonymous User'}</h2>
@@ -87,7 +87,7 @@ export default function ContactProfile({ conversationId }: ContactProfileProps) 
                     variant="ghost" 
                     size="icon" 
                     className="h-6 w-6"
-                    onClick={() => copyToClipboard(conversation.userContact, 'Email')}
+                    onClick={() => copyToClipboard(conversation.userContact || '', 'Email')}
                   >
                     <Copy className="h-3 w-3" />
                   </Button>
@@ -120,7 +120,7 @@ export default function ContactProfile({ conversationId }: ContactProfileProps) 
                 </div>
                 
                 <div className="text-slate-400">Started</div>
-                <div className="text-right">{conversation.startedTimeAgo}</div>
+                <div className="text-right">{conversation.startedTimeAgo || 'Unknown'}</div>
                 
                 <div className="text-slate-400">Duration</div>
                 <div className="text-right">{conversation.duration || 'Ongoing'}</div>
@@ -138,7 +138,7 @@ export default function ContactProfile({ conversationId }: ContactProfileProps) 
             <div className="space-y-3">
               <h4 className="text-xs font-medium uppercase tracking-wider text-slate-400">Tags</h4>
               <div className="flex flex-wrap gap-1">
-                {conversation.tags && conversation.tags.length > 0 ? (
+                {conversation.tags && Array.isArray(conversation.tags) && conversation.tags.length > 0 ? (
                   conversation.tags.map((tag: string, index: number) => (
                     <Badge key={index} variant="secondary" className="bg-slate-800">
                       {tag}
