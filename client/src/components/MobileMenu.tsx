@@ -41,9 +41,9 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
   const navItems = [
     { href: "/", label: "Dashboard", icon: LayoutDashboard },
     { href: "/conversations", label: "Conversations", icon: MessageSquare },
-    { href: "/settings", label: "Settings", icon: Settings },
-    { href: "/team", label: "Team", icon: Users },
     { href: "/reports", label: "Reports", icon: FileBarChart },
+    { href: "/teams", label: "Teams", icon: Users },
+    { href: "/settings", label: "Settings", icon: Settings },
   ];
 
   return (
