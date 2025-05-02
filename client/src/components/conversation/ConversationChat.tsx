@@ -14,7 +14,8 @@ import {
   Send, 
   Paperclip, 
   CircleHelp,
-  Bot
+  Bot,
+  Play
 } from "lucide-react";
 import ConversationMessageComponent from "./ConversationMessage";
 
