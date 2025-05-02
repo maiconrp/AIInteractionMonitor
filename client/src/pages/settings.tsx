@@ -186,7 +186,7 @@ export default function Settings() {
               </div>
             </CardContent>
             <CardFooter className="border-t border-slate-700 pt-4 flex justify-between">
-              <Button variant="outline" className="bg-slate-700 border-slate-600 hover:bg-slate-600">
+              <Button variant="outline" className="bg-slate-700 border-slate-600 hover:bg-slate-600 shadow-sm shadow-slate-900/50">
                 Reset to Default
               </Button>
               <Button 
@@ -201,7 +201,7 @@ export default function Settings() {
 
         {/* Notifications Settings */}
         <TabsContent value="notifications" className="space-y-4">
-          <Card className="bg-slate-800 border-slate-700">
+          <Card className="bg-slate-800 border border-slate-700 shadow-md shadow-slate-900/50 rounded-lg">
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Bell className="mr-2 h-5 w-5" /> Notification Settings
@@ -294,7 +294,7 @@ export default function Settings() {
 
         {/* AI Settings */}
         <TabsContent value="ai" className="space-y-4">
-          <Card className="bg-slate-800 border-slate-700">
+          <Card className="bg-slate-800 border border-slate-700 shadow-md shadow-slate-900/50 rounded-lg">
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Bot className="mr-2 h-5 w-5" /> AI Settings
@@ -384,7 +384,7 @@ export default function Settings() {
 
         {/* Security Settings */}
         <TabsContent value="security" className="space-y-4">
-          <Card className="bg-slate-800 border-slate-700">
+          <Card className="bg-slate-800 border border-slate-700 shadow-md shadow-slate-900/50 rounded-lg">
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Shield className="mr-2 h-5 w-5" /> Security Settings
@@ -471,7 +471,7 @@ export default function Settings() {
 
         {/* Integration Settings */}
         <TabsContent value="integrations" className="space-y-4">
-          <Card className="bg-slate-800 border-slate-700">
+          <Card className="bg-slate-800 border border-slate-700 shadow-md shadow-slate-900/50 rounded-lg">
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Database className="mr-2 h-5 w-5" /> Integration Settings
@@ -580,7 +580,7 @@ export default function Settings() {
               </div>
             </CardContent>
             <CardFooter className="border-t border-slate-700 pt-4 flex justify-between">
-              <Button variant="outline" className="bg-slate-700 border-slate-600 hover:bg-slate-600">
+              <Button variant="outline" className="bg-slate-700 border-slate-600 hover:bg-slate-600 shadow-sm shadow-slate-900/50">
                 <RefreshCw className="mr-2 h-4 w-4" /> Test Webhook
               </Button>
               <Button 
