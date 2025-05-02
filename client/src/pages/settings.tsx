@@ -82,17 +82,42 @@ export default function Settings() {
       </div>
 
       <Tabs defaultValue="general" className="space-y-4">
-        <TabsList className="bg-slate-750 grid grid-cols-2 md:grid-cols-5 gap-2">
-          <TabsTrigger value="general" className="data-[state=active]:bg-slate-700">General</TabsTrigger>
-          <TabsTrigger value="notifications" className="data-[state=active]:bg-slate-700">Notifications</TabsTrigger>
-          <TabsTrigger value="ai" className="data-[state=active]:bg-slate-700">AI Settings</TabsTrigger>
-          <TabsTrigger value="security" className="data-[state=active]:bg-slate-700">Security</TabsTrigger>
-          <TabsTrigger value="integrations" className="data-[state=active]:bg-slate-700">Integrations</TabsTrigger>
+        <TabsList className="bg-slate-800 border border-slate-700 p-1 rounded-lg grid grid-cols-2 md:grid-cols-5 gap-2">
+          <TabsTrigger 
+            value="general" 
+            className="data-[state=active]:bg-primary-500 data-[state=active]:text-white rounded-md px-3 py-2 text-sm font-medium transition-all"
+          >
+            General
+          </TabsTrigger>
+          <TabsTrigger 
+            value="notifications" 
+            className="data-[state=active]:bg-primary-500 data-[state=active]:text-white rounded-md px-3 py-2 text-sm font-medium transition-all"
+          >
+            Notifications
+          </TabsTrigger>
+          <TabsTrigger 
+            value="ai" 
+            className="data-[state=active]:bg-primary-500 data-[state=active]:text-white rounded-md px-3 py-2 text-sm font-medium transition-all"
+          >
+            AI Settings
+          </TabsTrigger>
+          <TabsTrigger 
+            value="security" 
+            className="data-[state=active]:bg-primary-500 data-[state=active]:text-white rounded-md px-3 py-2 text-sm font-medium transition-all"
+          >
+            Security
+          </TabsTrigger>
+          <TabsTrigger 
+            value="integrations" 
+            className="data-[state=active]:bg-primary-500 data-[state=active]:text-white rounded-md px-3 py-2 text-sm font-medium transition-all"
+          >
+            Integrations
+          </TabsTrigger>
         </TabsList>
 
         {/* General Settings */}
         <TabsContent value="general" className="space-y-4">
-          <Card className="bg-slate-800 border-slate-700">
+          <Card className="bg-slate-800 border border-slate-700 shadow-md shadow-slate-900/50 rounded-lg">
             <CardHeader>
               <CardTitle>General Settings</CardTitle>
               <CardDescription>Configure basic system settings and preferences.</CardDescription>
@@ -165,7 +190,7 @@ export default function Settings() {
                 Reset to Default
               </Button>
               <Button 
-                className="bg-primary-500 hover:bg-primary-600"
+                className="bg-primary-500 hover:bg-primary-600 shadow-sm shadow-primary-300/20"
                 onClick={() => handleSaveSettings('general')}
               >
                 <Save className="mr-2 h-4 w-4" /> Save Settings
@@ -258,7 +283,7 @@ export default function Settings() {
             </CardContent>
             <CardFooter className="border-t border-slate-700 pt-4 flex justify-end">
               <Button 
-                className="bg-primary-500 hover:bg-primary-600"
+                className="bg-primary-500 hover:bg-primary-600 shadow-sm shadow-primary-300/20"
                 onClick={() => handleSaveSettings('notification')}
               >
                 <Save className="mr-2 h-4 w-4" /> Save Settings
@@ -348,7 +373,7 @@ export default function Settings() {
             </CardContent>
             <CardFooter className="border-t border-slate-700 pt-4 flex justify-end">
               <Button 
-                className="bg-primary-500 hover:bg-primary-600"
+                className="bg-primary-500 hover:bg-primary-600 shadow-sm shadow-primary-300/20"
                 onClick={() => handleSaveSettings('AI')}
               >
                 <Save className="mr-2 h-4 w-4" /> Save Settings
@@ -435,7 +460,7 @@ export default function Settings() {
             </CardContent>
             <CardFooter className="border-t border-slate-700 pt-4 flex justify-end">
               <Button 
-                className="bg-primary-500 hover:bg-primary-600"
+                className="bg-primary-500 hover:bg-primary-600 shadow-sm shadow-primary-300/20"
                 onClick={() => handleSaveSettings('security')}
               >
                 <Save className="mr-2 h-4 w-4" /> Save Settings
@@ -559,7 +584,7 @@ export default function Settings() {
                 <RefreshCw className="mr-2 h-4 w-4" /> Test Webhook
               </Button>
               <Button 
-                className="bg-primary-500 hover:bg-primary-600"
+                className="bg-primary-500 hover:bg-primary-600 shadow-sm shadow-primary-300/20"
                 onClick={() => handleSaveSettings('integration')}
               >
                 <Save className="mr-2 h-4 w-4" /> Save Settings
