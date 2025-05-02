@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { 
   Users, User, UserPlus, UserMinus, Mail, Settings, Shield, Plus, Search
 } from "lucide-react";
-import DashboardLayout from "@/layouts/DashboardLayout";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -191,7 +190,6 @@ export default function Teams() {
   };
 
   return (
-    <DashboardLayout>
       <div className="container mx-auto py-6 space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">Team Management</h1>
@@ -564,6 +562,5 @@ export default function Teams() {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
   );
 }

@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Download, FileText, Filter, Calendar, BarChart2 } from "lucide-react";
-import DashboardLayout from "@/layouts/DashboardLayout";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -72,7 +71,6 @@ export default function Reports() {
   };
 
   return (
-    <DashboardLayout>
       <div className="container mx-auto py-6 space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">Reports & Analytics</h1>
@@ -367,6 +365,5 @@ export default function Reports() {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
   );
 }
