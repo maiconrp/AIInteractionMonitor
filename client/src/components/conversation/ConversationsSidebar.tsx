@@ -15,12 +15,16 @@ interface ConversationListResponse {
 interface ConversationsSidebarProps {
   onSelectConversation: (conversation: Conversation) => void;
   selectedConversationId: string | null;
+  viewFilter?: string;
 }
 
-export default function ConversationsSidebar({ onSelectConversation, selectedConversationId }: ConversationsSidebarProps) {
+export default function ConversationsSidebar({ 
+  onSelectConversation, 
+  selectedConversationId,
+  viewFilter = "all" 
+}: ConversationsSidebarProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [view, setView] = useState("all");
   
   const { data, isLoading } = useQuery<ConversationListResponse>({
     queryKey: ['/api/conversations', { page: 1, status: statusFilter, search: searchQuery }],
@@ -58,25 +62,15 @@ export default function ConversationsSidebar({ onSelectConversation, selectedCon
     <div className="h-full flex flex-col bg-slate-900 border-r border-slate-700 w-80">
       <div className="p-4 border-b border-slate-700">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold">Conversations</h2>
+          <div className="bg-primary-500/20 text-primary-500 border border-primary-500/20 rounded px-2 py-1 text-xs font-semibold">
+            {viewFilter === "all" ? "All Conversations" : 
+             viewFilter === "mine" ? "My Conversations" : 
+             "Unassigned Conversations"}
+          </div>
           <Badge variant="outline" className="bg-slate-800 text-white border-slate-700">
             Open
           </Badge>
         </div>
-        
-        <Tabs defaultValue="all" className="w-full" onValueChange={setView}>
-          <TabsList className="grid grid-cols-3 bg-slate-800 mb-4">
-            <TabsTrigger value="all" className="data-[state=active]:bg-primary-500">
-              All
-            </TabsTrigger>
-            <TabsTrigger value="mine" className="data-[state=active]:bg-primary-500">
-              Mine
-            </TabsTrigger>
-            <TabsTrigger value="unassigned" className="data-[state=active]:bg-primary-500">
-              Unassigned
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
         
         <form onSubmit={handleSearch} className="relative">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
@@ -132,13 +126,7 @@ export default function ConversationsSidebar({ onSelectConversation, selectedCon
                   {conversation.lastMessagePreview || 'No messages yet'}
                 </div>
                 
-                <div className="mt-2 flex items-center gap-1">
-                  {conversation.tags && Array.isArray(conversation.tags) && conversation.tags.map((tag: string, index: number) => (
-                    <Badge key={index} variant="secondary" className="bg-slate-700 text-xs">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
+                {/* Tags would be displayed here if available */}
               </div>
             ))}
           </div>

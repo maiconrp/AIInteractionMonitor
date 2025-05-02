@@ -168,13 +168,13 @@ export default function ConversationChat({ conversationId }: ConversationChatPro
   return (
     <div className="h-full flex flex-col bg-slate-800">
       {/* Header */}
-      <div className="p-4 border-b border-slate-700 flex items-center justify-between">
+      <div className="p-3 border-b border-slate-700 flex items-center justify-between">
         <div className="flex items-center">
-          <div className="h-8 w-8 rounded-full bg-slate-600 flex items-center justify-center text-white mr-3">
-            {conversation.avatarText || '?'}
+          <div className="h-10 w-10 rounded-full bg-slate-600 flex items-center justify-center text-white mr-3">
+            {conversation.avatarText || 'DJ'}
           </div>
           <div>
-            <h3 className="font-medium line-clamp-1">{conversation.userName || 'Anonymous User'}</h3>
+            <h3 className="font-medium line-clamp-1">{conversation.userName || 'Dr. Joel Mante PhD'}</h3>
             <div className="flex items-center gap-2">
               <Badge variant="outline" className={`
                 text-xs
@@ -186,7 +186,7 @@ export default function ConversationChat({ conversationId }: ConversationChatPro
                   'bg-slate-500/10 text-slate-400 border-slate-500/20'
                 }
               `}>
-                {conversation.status.charAt(0).toUpperCase() + conversation.status.slice(1)}
+                {conversation.status === 'taken_over' ? 'Taken over' : conversation.status.charAt(0).toUpperCase() + conversation.status.slice(1)}
               </Badge>
               <Badge variant="outline" className="bg-primary-500/10 text-primary-500 border-primary-500/20 text-xs">
                 {conversation.model || 'GPT-4'}
@@ -196,22 +196,54 @@ export default function ConversationChat({ conversationId }: ConversationChatPro
         </div>
         
         <div className="flex gap-2">
-          <Button 
-            variant="secondary" 
-            size="sm"
-            onClick={() => pauseAIMutation.mutate()}
-            disabled={conversation.status === 'paused' || pauseAIMutation.isPending}
-            className="bg-slate-700 hover:bg-slate-600"
-          >
-            <PauseCircle className="h-4 w-4 mr-2" />
-            {pauseAIMutation.isPending ? "Pausing..." : "Pause AI"}
-          </Button>
+          {conversation.status === 'paused' ? (
+            <Button 
+              variant="secondary" 
+              size="sm"
+              onClick={() => {
+                apiRequest("POST", `/api/conversations/${conversationId}/resume`, {}).then(() => {
+                  queryClient.invalidateQueries({ queryKey: [`/api/conversations/${conversationId}`] });
+                  toast({
+                    title: "AI Resumed",
+                    description: "The AI has been resumed for this conversation.",
+                  });
+                  sendMessage({
+                    type: "conversation_updated",
+                    conversationId,
+                    action: "resume"
+                  });
+                }).catch(error => {
+                  toast({
+                    title: "Failed to resume AI",
+                    description: error.message,
+                    variant: "destructive"
+                  });
+                });
+              }}
+              className="text-primary-500 border-primary-500 hover:bg-primary-500/10"
+            >
+              <Play className="h-4 w-4 mr-2" />
+              Resume AI
+            </Button>
+          ) : (
+            <Button 
+              variant="secondary" 
+              size="sm"
+              onClick={() => pauseAIMutation.mutate()}
+              disabled={conversation.status === 'completed' || pauseAIMutation.isPending}
+              className="text-amber-500 border-amber-500 hover:bg-amber-500/10"
+            >
+              <PauseCircle className="h-4 w-4 mr-2" />
+              {pauseAIMutation.isPending ? "Pausing..." : "Pause AI"}
+            </Button>
+          )}
+          
           <Button 
             variant="secondary" 
             size="sm"
             onClick={() => takeOverMutation.mutate()}
             disabled={conversation.status === 'taken_over' || takeOverMutation.isPending}
-            className="bg-slate-700 hover:bg-slate-600"
+            className="text-primary-500 border-primary-500 hover:bg-primary-500/10"
           >
             <UserCheck className="h-4 w-4 mr-2" />
             {takeOverMutation.isPending ? "Taking Over..." : "Take Over"}
@@ -239,45 +271,102 @@ export default function ConversationChat({ conversationId }: ConversationChatPro
         </div>
       </Tabs>
       
-      {/* Message Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {isLoadingMessages ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500"></div>
-          </div>
-        ) : messages.length > 0 ? (
-          <>
-            {messages.map((message: ConversationMessage) => (
-              <ConversationMessageComponent 
-                key={message.id} 
-                message={message} 
-              />
-            ))}
-            {/* Typing indicator if needed */}
-            {conversation.status === 'active' && (
-              <div className="flex items-start">
-                <div className="flex-shrink-0 h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-700">
-                  <Bot className="h-4 w-4" />
+      {/* Message and Dashboard Content */}
+      {activeTab === "messages" ? (
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {isLoadingMessages ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500"></div>
+            </div>
+          ) : messages && messages.length > 0 ? (
+            <>
+              {messages.map((message: ConversationMessage) => (
+                <ConversationMessageComponent 
+                  key={message.id} 
+                  message={message} 
+                />
+              ))}
+              {/* Typing indicator if needed */}
+              {conversation.status === 'active' && (
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-700">
+                    <Bot className="h-4 w-4" />
+                  </div>
+                  <div className="ml-3 bg-slate-700 p-3 rounded-lg rounded-tl-none">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                      <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                    </div>
+                  </div>
                 </div>
-                <div className="ml-3 bg-slate-700 p-3 rounded-lg rounded-tl-none">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                    <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              )}
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full text-slate-400">
+              <MessageSquare className="h-12 w-12 mb-4 opacity-20" />
+              <p className="text-lg font-medium mb-1">No messages yet</p>
+              <p className="text-sm">Start the conversation by sending a message.</p>
+            </div>
+          )}
+          <div ref={messagesEndRef}></div>
+        </div>
+      ) : (
+        <div className="flex-1 overflow-y-auto p-4">
+          <div className="bg-slate-850 rounded-lg p-4 mb-4">
+            <h3 className="text-lg font-semibold mb-2">Customer Dashboard</h3>
+            <p className="text-sm text-slate-400 mb-4">View detailed information about this customer.</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-slate-800 p-4 rounded-lg">
+                <h4 className="text-sm font-medium mb-2 text-slate-300">Activity Summary</h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-xs text-slate-400">Total Conversations</span>
+                    <span className="text-xs font-medium">3</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-xs text-slate-400">Average Duration</span>
+                    <span className="text-xs font-medium">14m 32s</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-xs text-slate-400">First Contact</span>
+                    <span className="text-xs font-medium">Apr 25, 2023</span>
                   </div>
                 </div>
               </div>
-            )}
-          </>
-        ) : (
-          <div className="flex flex-col items-center justify-center h-full text-slate-400">
-            <MessageSquare className="h-12 w-12 mb-4 opacity-20" />
-            <p className="text-lg font-medium mb-1">No messages yet</p>
-            <p className="text-sm">Start the conversation by sending a message.</p>
+              
+              <div className="bg-slate-800 p-4 rounded-lg">
+                <h4 className="text-sm font-medium mb-2 text-slate-300">Sentiment Analysis</h4>
+                <div className="flex items-center justify-between">
+                  <div className="w-full bg-slate-700 rounded-full h-2.5">
+                    <div className="bg-green-500 h-2.5 rounded-full" style={{ width: '70%' }}></div>
+                  </div>
+                  <span className="text-xs font-medium text-green-500 ml-2">Positive</span>
+                </div>
+              </div>
+              
+              <div className="bg-slate-800 p-4 rounded-lg">
+                <h4 className="text-sm font-medium mb-2 text-slate-300">Recent Topics</h4>
+                <div className="flex flex-wrap gap-1">
+                  <Badge className="bg-blue-500/20 text-blue-500 border-blue-500/20">Account Setup</Badge>
+                  <Badge className="bg-purple-500/20 text-purple-500 border-purple-500/20">Billing</Badge>
+                  <Badge className="bg-orange-500/20 text-orange-500 border-orange-500/20">Support</Badge>
+                </div>
+              </div>
+              
+              <div className="bg-slate-800 p-4 rounded-lg">
+                <h4 className="text-sm font-medium mb-2 text-slate-300">Conversation History</h4>
+                <div className="text-xs text-slate-400">
+                  <p>• Completed conversation on May 1, 2023</p>
+                  <p>• Active conversation on Apr 28, 2023</p>
+                  <p>• Completed conversation on Apr 25, 2023</p>
+                </div>
+              </div>
+            </div>
           </div>
-        )}
-        <div ref={messagesEndRef}></div>
-      </div>
+        </div>
+      )}
       
       {/* Input Area */}
       <div className="flex-none p-4 border-t border-slate-700">

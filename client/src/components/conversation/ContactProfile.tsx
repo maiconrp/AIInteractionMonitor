@@ -60,7 +60,7 @@ export default function ContactProfile({ conversationId }: ContactProfileProps) 
           <div className="text-center">
             <h2 className="font-medium">{conversation.userName || 'Anonymous User'}</h2>
             <p className="text-sm text-slate-400">
-              {conversation.userTitle || 'User'}
+              User
             </p>
           </div>
         </div>
@@ -138,15 +138,7 @@ export default function ContactProfile({ conversationId }: ContactProfileProps) 
             <div className="space-y-3">
               <h4 className="text-xs font-medium uppercase tracking-wider text-slate-400">Tags</h4>
               <div className="flex flex-wrap gap-1">
-                {conversation.tags && Array.isArray(conversation.tags) && conversation.tags.length > 0 ? (
-                  conversation.tags.map((tag: string, index: number) => (
-                    <Badge key={index} variant="secondary" className="bg-slate-800">
-                      {tag}
-                    </Badge>
-                  ))
-                ) : (
-                  <div className="text-sm text-slate-400 italic">No tags</div>
-                )}
+                <div className="text-sm text-slate-400 italic">No tags</div>
               </div>
             </div>
           </TabsContent>
