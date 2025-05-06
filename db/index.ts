@@ -1,16 +1,14 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
-import * as schema from "@shared/schema";
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+import * as schema from '../shared/schema';
+import * as dotenv from 'dotenv'
 
-// This is the correct way neon config - DO NOT change this
-neonConfig.webSocketConstructor = ws;
+dotenv.config();
 
-if (!process.env.DATABASE_URL) {
-  throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?",
-  );
-}
+// Create a pool with your Supabase database connection details
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL!,
+});
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-export const db = drizzle({ client: pool, schema });
+// Connect to the database using drizzle
+export const db = drizzle(pool, { schema: schema });

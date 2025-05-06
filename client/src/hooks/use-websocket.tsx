@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState, useRef } from 'react';
 import { WebSocketContext } from '@/provider/WebSocketProvider';
 
 type WebSocketStatus = 'connecting' | 'open' | 'closing' | 'closed' | 'uninstantiated';
@@ -10,8 +10,7 @@ export function useWebSocket() {
   useEffect(() => {
     if (!context) return;
     
-    const { socket } = context;
-    
+    const { socket } = context;    
     // Set initial status
     if (socket) {
       switch (socket.readyState) {
@@ -31,7 +30,6 @@ export function useWebSocket() {
           setStatus('uninstantiated');
       }
     }
-
     // Update status on socket events
     const handleOpen = () => setStatus('open');
     const handleClose = () => setStatus('closed');

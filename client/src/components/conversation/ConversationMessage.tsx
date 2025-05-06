@@ -10,7 +10,7 @@ export default function ConversationMessageComponent({ message }: ConversationMe
     return (
       <div className="flex items-start">
         <div className="flex-shrink-0 h-8 w-8 rounded-full bg-slate-300 flex items-center justify-center text-slate-800">
-          {message.senderInitials || <User className="h-4 w-4" />}
+          {message.senderInitials ? message.senderInitials : <User className="h-4 w-4" />}
         </div>
         <div className="ml-3 max-w-[80%]">
           <div className="flex items-center gap-2 mb-1">

@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, json, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, json, pgEnum, uuid } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -95,6 +95,20 @@ export const metrics = pgTable('metrics', {
   name: text('name').notNull(),
   value: text('value').notNull(),
   date: timestamp('date').defaultNow().notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// ebd_interactions table
+export const ebdInteractions = pgTable('ebd_interactions', {
+  id: uuid('id').primaryKey(),
+  name: text('name').notNull(),
+  chatId: text('chat_id').notNull(),
+  quotedMessage: text('quoted_message'),
+  message: text('message').notNull(),
+  date: timestamp('date').notNull(),
+  classification: text('classification').notNull(),
+  pontuation: text('pontuation').notNull(),
+  privateNumber: text('private_number').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 

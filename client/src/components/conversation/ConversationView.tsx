@@ -1,14 +1,16 @@
 import { useState, useRef, useEffect } from "react";
-import { X, PauseCircle, UserCheck, UserCog, History } from "lucide-react";
-import { Conversation, ConversationMessage } from "@shared/schema";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { History, PauseCircle, StickyNote, UserCheck, UserCog, X } from "lucide-react";
+import { ConversationMessage} from "@shared/schema";
+import { useQuery, useMutation, useQueryClient, } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import ConversationMessageComponent from "./ConversationMessage";
-import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useWebSocket } from "@/hooks/use-websocket";
-
+import { Toggle } from "@/components/ui/toggle";
+import { Conversation, ConversationMessages } from "@/types/types";
 interface ConversationViewProps {
   conversationId: string;
   isOpen: boolean;
@@ -18,18 +20,22 @@ interface ConversationViewProps {
 export default function ConversationView({ conversationId, isOpen, onClose }: ConversationViewProps) {
   const [messageInput, setMessageInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const queryClient = useQueryClient();
+  const queryClient = useQueryClient();  
+  const [pauseDuration, setPauseDuration] = useState<string | null>(null); // Duration for pausing AI
+  const [isPauseUntilReactivate, setIsPauseUntilReactivate] = useState(false); // Toggle for "until I reactivate"
+  const [notes, setNotes] = useState<string>("");
+  
   const { toast } = useToast();
   const { sendMessage } = useWebSocket();
   
   // Fetch conversation details
-  const { data: conversation, isLoading: isLoadingConversation } = useQuery({
+  const { data: conversation, isLoading: isLoadingConversation } = useQuery<Conversation>({
     queryKey: [`/api/conversations/${conversationId}`],
     enabled: isOpen && !!conversationId,
   });
-  
+
   // Fetch conversation messages
-  const { data: messages, isLoading: isLoadingMessages } = useQuery({
+  const { data: messages, isLoading: isLoadingMessages } = useQuery<ConversationMessages>({
     queryKey: [`/api/conversations/${conversationId}/messages`],
     enabled: isOpen && !!conversationId,
   });
@@ -38,10 +44,11 @@ export default function ConversationView({ conversationId, isOpen, onClose }: Co
   const sendMessageMutation = useMutation({
     mutationFn: (content: string) => {
       return apiRequest("POST", `/api/conversations/${conversationId}/messages`, { content });
-    },
+    },    
     onSuccess: () => {
       setMessageInput("");
       queryClient.invalidateQueries({ queryKey: [`/api/conversations/${conversationId}/messages`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/conversations/${conversationId}`] });
     },
     onError: (error) => {
       toast({
@@ -53,9 +60,18 @@ export default function ConversationView({ conversationId, isOpen, onClose }: Co
   });
 
   // Handle AI pause
+  const getPausePayload = () => {
+    if (isPauseUntilReactivate) return { duration: "until_reactivate" };
+    if (pauseDuration) return { duration: pauseDuration };
+    return {};
+};
   const pauseAIMutation = useMutation({
-    mutationFn: () => {
-      return apiRequest("POST", `/api/conversations/${conversationId}/pause`, {});
+    mutationFn: (payload: { duration?: string }) => {
+      return apiRequest(
+        "POST",
+        `/api/conversations/${conversationId}/pause`,
+        payload
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/conversations/${conversationId}`] });
@@ -167,74 +183,99 @@ export default function ConversationView({ conversationId, isOpen, onClose }: Co
                     <div className="py-4 border-b border-slate-700">
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="flex items-center">
-                          <div className={`h-10 w-10 rounded-full bg-${conversation.avatarColor}-100 flex items-center justify-center text-${conversation.avatarColor}-700`}>
-                            {conversation.avatarText}
-                          </div>
+                          <div className={`h-10 w-10 rounded-full bg-${conversation.avatarColor}-100 flex items-center justify-center text-${conversation.avatarColor}-700`}>                             
+                            {conversation?.avatarText}
+                          </div>                           
                           <div className="ml-3">
                             <div className="text-base font-medium">{conversation.userName}</div>
                             <div className="text-sm text-slate-400">{conversation.userContact}</div>
-                          </div>
+                          </div>                           
                         </div>
                         <div className="flex flex-wrap gap-2">
                           {getStatusDisplay(conversation.status)}
-                          <span className="px-2 py-1 rounded-full text-xs bg-slate-200 text-slate-800">
-                            ID: {conversation.displayId}
+                            <span className="px-2 py-1 rounded-full text-xs bg-slate-200 text-slate-800">
+                            ID: {conversation.displayId}                            
                           </span>
                           <span className="px-2 py-1 rounded-full text-xs bg-primary-200 text-primary-800">
                             {conversation.model || 'GPT-4'}
                           </span>
                         </div>
                       </div>
-
-                      <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
-                        <div>
-                          <span className="text-slate-400">Started:</span>
-                          <span className="ml-1">{conversation.startedAt}</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-400">Duration:</span>
-                          <span className="ml-1">{conversation.duration}</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-400">Token Count:</span>
-                          <span className="ml-1">{conversation.tokenCount}</span>
-                        </div>
+                        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+                          <div>
+                            <span className="text-slate-400">Started:</span>
+                            <span className="ml-1">{conversation?.startedAt}</span>
+                          </div>
+                          <div>
+                            <span className="text-slate-400">Duration:</span>
+                            <span className="ml-1">{conversation?.duration}</span>
+                            </div>
+                          <div>
+                            <span className="text-slate-400">Token Count:</span>
+                            <span className="ml-1">{conversation?.tokenCount}</span>
+                            </div>
                       </div>
                     </div>
+                        <Tabs defaultValue="details" className="w-full">
+                            <TabsList>
+                                <TabsTrigger value="details">Details</TabsTrigger>
+                                <TabsTrigger value="actions">Actions</TabsTrigger>
+                            </TabsList>
+                            <TabsContent value="details">
+                                <div className="space-y-4">
+                                    <div className="flex items-center space-x-2">
+                                        <StickyNote className="h-4 w-4 text-slate-400" />
+                                        <h4 className="text-sm font-medium text-slate-400">Notes</h4>
+                                    </div>
+                                    <Textarea
+                                    className="w-full bg-slate-700 border-0 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-primary-500 resize-none"
+                                    placeholder="Add notes about this lead..."
+                                    value={notes}
+                                    onChange={(e) => setNotes(e.target.value)}
+                                    />
+                                </div>
+                            </TabsContent>
+                            <TabsContent value="actions">
+                            <div className="flex flex-wrap items-center gap-2 py-3 border-b border-slate-700">
+                                <div className="flex items-center gap-2">
+                                   <Button
+                                     variant="default"
+                                     size="sm"
+                                     className="bg-accent-500 hover:bg-accent-600 text-white flex items-center gap-1"
+                                     onClick={() => {
+                                        const payload = getPausePayload();
+                                        if (Object.keys(payload).length > 0 && (pauseDuration || isPauseUntilReactivate) ) {
+                                          pauseAIMutation.mutate(payload);
+                                        }
+                                        setPauseDuration(null);
+                                    }}
+                                     disabled={conversation.status === "paused" || pauseAIMutation.isPending}
+                                   >
 
-                    {/* Conversation Controls */}
-                    <div className="flex flex-wrap items-center gap-2 py-3 border-b border-slate-700">
-                      <Button 
-                        variant="default" 
-                        className="bg-accent-500 hover:bg-accent-600 text-white flex items-center gap-1"
-                        onClick={() => pauseAIMutation.mutate()}
-                        disabled={conversation.status === 'paused' || pauseAIMutation.isPending}
-                      >
-                        <PauseCircle className="h-4 w-4" /> 
-                        {pauseAIMutation.isPending ? "Pausing..." : "Pause AI"}
-                      </Button>
-                      <Button 
-                        variant="secondary" 
-                        className="bg-slate-700 hover:bg-slate-600 text-white flex items-center gap-1"
-                        onClick={() => takeOverMutation.mutate()}
-                        disabled={conversation.status === 'taken_over' || takeOverMutation.isPending}
-                      >
-                        <UserCheck className="h-4 w-4" /> 
-                        {takeOverMutation.isPending ? "Taking Over..." : "Take Over"}
-                      </Button>
-                      <Button 
-                        variant="secondary" 
-                        className="bg-slate-700 hover:bg-slate-600 text-white flex items-center gap-1"
-                      >
-                        <UserCog className="h-4 w-4" /> Transfer
-                      </Button>
-                      <Button 
-                        variant="secondary" 
-                        className="bg-slate-700 hover:bg-slate-600 text-white flex items-center gap-1"
-                      >
-                        <History className="h-4 w-4" /> View History
-                      </Button>
-                    </div>
+                                    <PauseCircle className="h-4 w-4" />
+                                    {pauseAIMutation.isPending ? "Pausing..." : "Pause AI"}
+                                   </Button>
+                                    <select
+                                    className="bg-slate-700 text-white px-2 py-1 rounded"
+                                    onChange={(e) => setPauseDuration(e.target.value)}
+                                    >
+                                     <option value="">Select duration</option>
+                                     <option value="15min">15 min</option>
+                                     <option value="30min">30 min</option>
+                                     <option value="1h">1h</option>
+                                    </select>
+                                   <Toggle pressed={isPauseUntilReactivate} onPressedChange={setIsPauseUntilReactivate}>Until I reactivate</Toggle>
+                                </div>
+                                <Button variant="secondary" size="sm" className="bg-slate-700 hover:bg-slate-600 text-white flex items-center gap-1"
+                                   onClick={() => takeOverMutation.mutate()}
+                                   disabled={conversation.status === 'taken_over' || takeOverMutation.isPending}>
+                                   <UserCheck className="h-4 w-4" />{takeOverMutation.isPending ? "Taking Over..." : "Take Over"} 
+                                </Button>
+                                <Button variant="secondary" size="sm" className="bg-slate-700 hover:bg-slate-600 text-white flex items-center gap-1"><UserCog className="h-4 w-4" />Transfer</Button>
+                                <Button variant="secondary" size="sm" className="bg-slate-700 hover:bg-slate-600 text-white flex items-center gap-1"><History className="h-4 w-4" />View History</Button>
+                            </div>
+                            </TabsContent>
+                        </Tabs>
 
                     {/* Conversation Transcript */}
                     <div className="py-4 space-y-4">
@@ -249,14 +290,9 @@ export default function ConversationView({ conversationId, isOpen, onClose }: Co
                             <p className="mt-2 text-sm text-slate-400">Loading messages...</p>
                           </div>
                         ) : messages && messages.length > 0 ? (
-                          <>
-                            {messages.map((message: ConversationMessage) => (
-                              <ConversationMessageComponent 
-                                key={message.id} 
-                                message={message} 
-                              />
-                            ))}
-                            {/* Typing indicator if needed */}
+                          <>{messages.map((message : ConversationMessage) => {
+                             return(<ConversationMessageComponent key={message.id} message={message} />)
+                             })}
                             {conversation.status === 'active' && (
                               <div className="flex items-start">
                                 <div className="flex-shrink-0 h-8 w-8 rounded-full bg-slate-300 flex items-center justify-center text-slate-700">
@@ -271,7 +307,7 @@ export default function ConversationView({ conversationId, isOpen, onClose }: Co
                                 </div>
                               </div>
                             )}
-                          </>
+                          </>                          
                         ) : (
                           <p className="text-center text-slate-400">No messages in this conversation.</p>
                         )}

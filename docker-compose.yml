@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  app:
+    build: .
+    image: ebd-interaction-hub:latest
+    container_name: ebd-hub-container
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - 3000:3000
+    volumes:
+      - .:/app
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ebd-hub.entrypoints=web"
+      - "traefik.http.routers.ebd-hub.rule=Host(`your-domain.com`)"
+      - "traefik.http.services.ebd-hub.loadbalancer.server.port=3000"
+    networks:
+      - traefik-proxy
+
+networks:
+  traefik-proxy:
+    external: true

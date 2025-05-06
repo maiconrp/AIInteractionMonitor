@@ -15,7 +15,7 @@ export default function Sidebar() {
 
   return (
     <div className="hidden lg:flex lg:flex-shrink-0">
-      <div className="flex flex-col w-64 border-r border-slate-800 bg-slate-900">
+      <div className="flex flex-col w-48 border-r border-slate-800 bg-slate-900">
         <div className="flex items-center h-16 px-4 border-b border-slate-800 bg-slate-900">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary-500 text-white">
