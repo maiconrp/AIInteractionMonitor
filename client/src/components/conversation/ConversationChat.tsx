@@ -42,9 +42,10 @@ export default function ConversationChat({ conversationId }: ConversationChatPro
   });
   
   // Fetch conversation messages
-  const { data: messagesData, isLoading: isLoadingMessages } = useQuery<MessageListResponse>({
+  const { data: messagesData, isLoading: isLoadingMessages, error: messagesError } = useQuery<MessageListResponse>({
     queryKey: [`/api/conversations/${conversationId}/messages`],
     enabled: !!conversationId,
+    // Removed onError as it's not a valid option here. Error handling is done by checking messagesError.
   });
   
   const messages = messagesData?.messages || [];
@@ -278,6 +279,12 @@ export default function ConversationChat({ conversationId }: ConversationChatPro
           {isLoadingMessages ? (
             <div className="flex items-center justify-center h-full">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500"></div>
+            </div>
+          ) : messagesError ? (
+             <div className="flex flex-col items-center justify-center h-full text-red-400">
+              <CircleHelp className="h-16 w-16 mb-4 opacity-20" />
+              <h2 className="text-xl font-medium mb-2">Error loading messages</h2>
+              <p className="text-sm">{messagesError.message || "An unknown error occurred."}</p>
             </div>
           ) : messages && messages.length > 0 ? (
             <>

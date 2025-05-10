@@ -1,0 +1,7 @@
+{
+  "host": "db.ylyjymblihjkowbqnjmt.supabase.co",
+  "port": 5432,
+  "database": "postgres",
+  "user": "postgres",
+  "password": "[YOUR-SUPABASE-PASSWORD]"
+}
