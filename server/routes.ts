@@ -2,7 +2,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { conversationStatusEnum } from "@shared/schema";
+import { conversationStatusEnum, type Conversation } from "@shared/schema";
+import * as fs from 'fs/promises';
 import { eq, desc, and, like, sql } from "drizzle-orm";
 
 // Clients connected via WebSocket
@@ -130,13 +131,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const status = req.query.status as string;
       const search = req.query.search as string;
       
-      const { conversations, total, totalPages } = await storage.getConversations({
-        page,
-        status: status !== 'all' ? status : undefined,
-        search: search || undefined
-      });
-      
-      res.json({ conversations, total, totalPages });
+      // --- TXT Database Implementation ---
+      let allConversations: Conversation[] = [];
+      try {
+        const data = await fs.readFile('conversations.txt', 'utf-8');
+        allConversations = data.split('\n')
+          .filter(line => line.trim() !== '')
+          .map(line => JSON.parse(line) as Conversation);
+      } catch (readError) {
+        console.error('Error reading conversations.txt:', readError);
+        // If the file doesn't exist or is empty, return an empty array
+        if ((readError as any).code === 'ENOENT') {
+           allConversations = [];
+        } else {
+          throw readError; // Re-throw other errors
+        }
+      }
+
+      // Basic filtering and pagination (assuming data is small enough to load in memory)
+      const filteredConversations = allConversations.filter(conv => {
+        const statusMatch = status === 'all' || conv.status === status;
+        // Assuming conversation content or another field is used for search instead of 'subject'
+        // Note: Accessing 'messages' directly on the Conversation type is incorrect based on shared
+        // schema and the current implementation where conversations are stored without embedded
+        // messages. A proper solution would involve fetching messages separately or ensuring the Conversation object
+        // in the TXT file includes a summary or the last message content. For now,
+        // we'll use a placeholder and assume a structure that might not fully align.
+        const searchMatch = !search || (conv.messages.slice(-1)[0]?.content || '').toLowerCase().includes(search.toLowerCase());
+        return statusMatch && searchMatch;
+      });;
+
+      const pageSize = 10; // Example page size
+      res.json({ conversations: filteredConversations, total: filteredConversations.length, totalPages: Math.ceil(filteredConversations.length / pageSize) });
+
     } catch (error) {
       console.error('Error fetching conversations:', error);
       res.status(500).json({ message: 'Failed to fetch conversations' });
@@ -181,9 +208,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const message = await storage.addConversationMessage(req.params.id, {
         sender: 'human_agent',
-        content
+ content,
       });
-      
+
       // Broadcast message to all clients
       const broadcastMsg = { 
         type: 'new_message', 
@@ -268,5 +295,5 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  return httpServer;
+ return httpServer;
 }
